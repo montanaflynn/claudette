@@ -263,10 +263,11 @@ type model struct {
 type projectItem struct {
 	name string
 	path string
+	actualPath string
 }
 
 func (i projectItem) Title() string       { return i.name }
-func (i projectItem) Description() string { return i.path }
+func (i projectItem) Description() string { return i.actualPath }
 func (i projectItem) FilterValue() string { return i.name }
 
 type projectsLoadedMsg struct {
@@ -428,12 +429,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case projectsLoadedMsg:
 		items := []list.Item{
-			projectItem{name: "All Projects", path: "Aggregate usage across all projects"},
+			projectItem{name: "All Projects", actualPath: "Aggregate usage across all projects"},
 		}
 		for _, p := range msg.projects {
-			items = append(items, projectItem{name: p.Name, path: p.Path})
+			items = append(items, projectItem{name: p.Name, path: p.Path, actualPath: p.ActualPath})
 		}
-		m.updateList(items, "Claude Code Usage")
+		m.updateList(items, "Usage by Project")
 
 	case sessionsLoadedMsg:
 		var items []list.Item

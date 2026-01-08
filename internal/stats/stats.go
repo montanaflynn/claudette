@@ -22,8 +22,9 @@ const (
 
 // Project represents a Claude Code project directory
 type Project struct {
-	Name string
-	Path string
+	Name       string
+	Path       string
+	ActualPath string
 }
 
 // UsageEvent represents a single token usage record
@@ -139,9 +140,15 @@ func ListProjects() ([]Project, error) {
 			}
 			seen[name] = true
 
+			actualPath := findActualPath(path)
+			if actualPath == "" {
+				actualPath = path // Fallback
+			}
+
 			projects = append(projects, Project{
-				Name: name,
-				Path: path,
+				Name:       name,
+				Path:       path,
+				ActualPath: actualPath,
 			})
 		}
 	}
@@ -151,6 +158,39 @@ func ListProjects() ([]Project, error) {
 	})
 
 	return projects, nil
+}
+
+func findActualPath(projectPath string) string {
+	entries, err := os.ReadDir(projectPath)
+	if err != nil {
+		return ""
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".jsonl") {
+			continue
+		}
+
+		path := filepath.Join(projectPath, entry.Name())
+		file, err := os.Open(path)
+		if err != nil {
+			continue
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			var record map[string]interface{}
+			if err := json.Unmarshal(scanner.Bytes(), &record); err != nil {
+				continue
+			}
+
+			if cwd := getString(record, "cwd"); cwd != "" {
+				return cwd
+			}
+		}
+	}
+	return ""
 }
 
 func projectNameFromPath(dirName string) string {
