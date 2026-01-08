@@ -53,3 +53,13 @@ brews:
     license: "MIT"
     test: |
       system "#{bin}/claudette --version"
+
+scoops:
+  - repository:
+      owner: montanaflynn
+      name: claudette
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    directory: scoop
+    homepage: "https://github.com/montanaflynn/claudette"
+    description: "Claude Code usage statistics viewer"
+    license: "MIT"

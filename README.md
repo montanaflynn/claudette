@@ -19,6 +19,13 @@ brew tap montanaflynn/claudette https://github.com/montanaflynn/claudette
 brew install claudette
 ```
 
+### Scoop (Windows)
+
+```powershell
+scoop bucket add claudette https://github.com/montanaflynn/claudette
+scoop install claudette
+```
+
 ### Go Install
 
 ```bash
