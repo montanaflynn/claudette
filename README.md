@@ -102,6 +102,11 @@ claudette
 
 You can output usage data as JSON using the `--json` (or `-j`) flag.
 
+**Show current session status:**
+```bash
+claudette status
+```
+
 **List all projects:**
 ```bash
 claudette projects list

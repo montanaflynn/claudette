@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/alecthomas/kong"
 	"github.com/charmbracelet/bubbles/key"
@@ -28,6 +29,8 @@ var CLI struct {
 	Projects struct {
 		List struct{} `cmd:"" help:"List available projects"`
 	} `cmd:"" help:"Manage projects"`
+
+	Status struct{} `cmd:"" help:"Show current session status"`
 }
 
 func main() {
@@ -43,6 +46,10 @@ func main() {
 		if err := listProjects(); err != nil {
 			ctx.FatalIfErrorf(err)
 		}
+	case "status":
+		if err := showStatus(); err != nil {
+			ctx.FatalIfErrorf(err)
+		}
 	default:
 		if CLI.JSON {
 			if err := outputJSON(CLI.Project, CLI.Group); err != nil {
@@ -56,6 +63,41 @@ func main() {
 			}
 		}
 	}
+}
+
+func showStatus() error {
+	blocks, err := stats.LoadAllSessionBlocks(stats.DefaultSessionDuration)
+	if err != nil {
+		return err
+	}
+
+	active := stats.GetActiveBlock(blocks)
+	if active == nil {
+		fmt.Println("No active session found")
+		return nil
+	}
+
+	burn := stats.CalculateBurnRate(active)
+	remaining := time.Until(active.EndTime)
+
+	fmt.Printf("Session ID: %s\n", active.ID)
+	fmt.Printf("Status:     %s\n", "Active")
+	fmt.Printf("Duration:   %s / %s\n", time.Since(active.StartTime).Round(time.Second), stats.DefaultSessionDuration)
+	fmt.Printf("Remaining:  %s\n", remaining.Round(time.Second))
+	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	fmt.Printf("Input:      %s\n", stats.FormatTokens(active.InputTokens))
+	fmt.Printf("Output:     %s\n", stats.FormatTokens(active.OutputTokens))
+	fmt.Printf("Cache W:    %s\n", stats.FormatTokens(active.CacheCreation))
+	fmt.Printf("Cache R:    %s\n", stats.FormatTokens(active.CacheRead))
+	fmt.Printf("Total:      %s\n", stats.FormatTokens(active.TotalTokens()))
+	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	
+	if burn != nil {
+		fmt.Printf("Burn Rate:  %.1f tokens/min\n", burn.TokensPerMinute)
+		fmt.Printf("Est. Cost:  $%.4f/hr\n", burn.CostPerHour)
+	}
+
+	return nil
 }
 
 func listProjects() error {
