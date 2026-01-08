@@ -34,7 +34,6 @@ type UsageEvent struct {
 	CacheCreation int
 	CacheRead     int
 	Model         string
-	CostUSD       float64
 	EventID       string
 }
 
@@ -61,7 +60,6 @@ type SessionBlock struct {
 	OutputTokens    int
 	CacheCreation   int
 	CacheRead       int
-	CostUSD         float64
 	Models          []string
 }
 
@@ -79,7 +77,6 @@ func (b *SessionBlock) NonCacheTokens() int {
 type BurnRate struct {
 	TokensPerMinute          float64
 	TokensPerMinuteIndicator float64 // Non-cache only, for thresholds
-	CostPerHour              float64
 }
 
 // DailyUsage holds usage aggregated by day
@@ -362,7 +359,6 @@ func extractUsageEvent(record map[string]interface{}) *UsageEvent {
 		CacheCreation: getInt(usage, "cache_creation_input_tokens"),
 		CacheRead:     getInt(usage, "cache_read_input_tokens"),
 		Model:         model,
-		CostUSD:       getFloat(record, "costUSD"),
 		EventID:       findEventID(record),
 	}
 
@@ -524,7 +520,6 @@ func createBlock(startTime time.Time, entries []UsageEvent, now time.Time, sessi
 		block.OutputTokens += e.OutputTokens
 		block.CacheCreation += e.CacheCreation
 		block.CacheRead += e.CacheRead
-		block.CostUSD += e.CostUSD
 		if e.Model != "" {
 			modelSet[e.Model] = true
 		}
@@ -778,7 +773,6 @@ func CalculateBurnRate(block *SessionBlock) *BurnRate {
 	return &BurnRate{
 		TokensPerMinute:          float64(block.TotalTokens()) / durationMinutes,
 		TokensPerMinuteIndicator: float64(block.NonCacheTokens()) / durationMinutes,
-		CostPerHour:              (block.CostUSD / durationMinutes) * 60,
 	}
 }
 

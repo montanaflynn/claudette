@@ -101,7 +101,6 @@ func showStatus() error {
 	
 	if burn != nil {
 		fmt.Printf("Burn Rate:  %.1f tokens/min\n", burn.TokensPerMinute)
-		fmt.Printf("Est. Cost:  $%.4f/hr\n", burn.CostPerHour)
 	}
 
 	return nil
@@ -330,9 +329,8 @@ func (i sessionItem) Description() string {
 	if i.block.IsGap {
 		return fmt.Sprintf("%s to %s", i.block.StartTime.Format("15:04"), i.block.EndTime.Format("15:04"))
 	}
-	return fmt.Sprintf("Tokens: %s | Cost: $%.4f | Models: %s",
+	return fmt.Sprintf("Tokens: %s | Models: %s",
 		stats.FormatTokens(i.block.TotalTokens()),
-		i.block.CostUSD,
 		fmt.Sprintf("%v", i.block.Models),
 	)
 }
