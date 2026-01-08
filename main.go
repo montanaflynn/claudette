@@ -477,6 +477,8 @@ func (m *model) updateList(items []list.Item, title string) {
 	m.list = list.New(items, delegate, w, h)
 	m.list.Title = title
 	m.list.SetShowHelp(false)
+	m.list.SetShowStatusBar(false)
+	m.list.SetShowPagination(false)
 	m.list.SetFilteringEnabled(true)
 	m.list.Styles.Title = titleStyle
 	m.listReady = true
@@ -492,17 +494,28 @@ func (m model) View() string {
 	switch m.currentView {
 	case usageTableView, sessionUsageTableView:
 		return m.renderTable()
-	case sessionListView:
+	case sessionListView, usageListView:
 		if !m.listReady {
-			return appStyle.Render("Loading sessions...")
+			loading := "usage"
+			if m.currentView == sessionListView {
+				loading = "sessions"
+			}
+			return appStyle.Render(fmt.Sprintf("Loading %s...", loading))
 		}
-		return appStyle.Render(m.list.View() + "\n" + help)
+
+		statusBar := fmt.Sprintf("%d items • page %d/%d", 
+			len(m.list.Items()), 
+			m.list.Paginator.Page+1, 
+			m.list.Paginator.TotalPages)
+		
+		viewHelp := help
+		if m.currentView == usageListView {
+			viewHelp = helpStyle.Render("[→] select • [u] usage • [s] sessions • [/] filter • [q] quit")
+		}
+
+		return appStyle.Render(m.list.View() + "\n" + helpStyle.Render(statusBar) + "\n" + viewHelp)
 	default:
-		if !m.listReady {
-			return appStyle.Render("Loading usage...")
-		}
-		pHelp := helpStyle.Render("[→] select • [u] usage • [s] sessions • [/] filter • [q] quit")
-		return appStyle.Render(m.list.View() + "\n" + pHelp)
+		return ""
 	}
 }
 
