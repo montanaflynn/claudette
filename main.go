@@ -366,12 +366,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentView = sessionListView
 				return m, loadSessions
 			}
-		case key.Matches(msg, key.NewBinding(key.WithKeys("left", "esc"))):
+		case key.Matches(msg, key.NewBinding(key.WithKeys("u"))):
 			if m.currentView != projectListView {
 				m.currentView = projectListView
 				m.selected = ""
 				m.usage = nil
 				m.sessions = nil
+				return m, loadProjects
+			}
+		case key.Matches(msg, key.NewBinding(key.WithKeys("left", "esc"))):
+			if m.currentView == usageTableView {
+				m.currentView = projectListView
+				m.selected = ""
+				m.usage = nil
 				return m, loadProjects
 			}
 			return m, tea.Quit
@@ -458,6 +465,8 @@ func (m model) View() string {
 		return appStyle.Render(fmt.Sprintf("Error: %v\n\nPress q to quit", m.err))
 	}
 
+	help := helpStyle.Render("[u] projects • [s] sessions • [q] quit")
+
 	switch m.currentView {
 	case usageTableView:
 		return m.renderTable()
@@ -465,14 +474,13 @@ func (m model) View() string {
 		if !m.listReady {
 			return appStyle.Render("Loading sessions...")
 		}
-		help := helpStyle.Render("[←] back • [q] quit")
 		return appStyle.Render(m.list.View() + "\n" + help)
 	default:
 		if !m.listReady {
 			return appStyle.Render("Loading projects...")
 		}
-		help := helpStyle.Render("[→] select • [s] sessions • [/] filter • [q] quit")
-		return appStyle.Render(m.list.View() + "\n" + help)
+		pHelp := helpStyle.Render("[→] select • [u] projects • [s] sessions • [/] filter • [q] quit")
+		return appStyle.Render(m.list.View() + "\n" + pHelp)
 	}
 }
 
