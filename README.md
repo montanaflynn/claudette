@@ -12,6 +12,12 @@ A TUI and CLI for viewing Claude Code usage statistics, built with [Charm](https
 
 ## Installation
 
+### Quick Install (macOS/Linux)
+
+```bash
+curl -sfL https://raw.githubusercontent.com/montanaflynn/claudette/main/install.sh | sh
+```
+
 ### Homebrew (macOS/Linux)
 
 ```bash
