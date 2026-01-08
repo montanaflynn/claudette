@@ -459,8 +459,8 @@ func identifySessionBlocks(entries []UsageEvent, sessionDuration time.Duration) 
 
 	for _, entry := range entries {
 		if currentBlockStart == nil {
-			// First entry - start new block (floored to hour)
-			start := floorToHour(entry.Timestamp)
+			// First entry - start new block at exact timestamp
+			start := entry.Timestamp
 			currentBlockStart = &start
 			currentEntries = []UsageEvent{entry}
 			continue
