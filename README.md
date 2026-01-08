@@ -46,6 +46,14 @@ sudo dpkg -i claudette_*.deb
 sudo rpm -i claudette_*.rpm
 ```
 
+### Manual Download
+
+You can download pre-compiled binaries for macOS, Linux, and Windows from the [Releases page](https://github.com/montanaflynn/claudette/releases).
+
+1. Download the archive for your OS/Arch.
+2. Extract the archive.
+3. Move the binary to your path (e.g., `/usr/local/bin`).
+
 ### Go Install
 
 ```bash
