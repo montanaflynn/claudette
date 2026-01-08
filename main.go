@@ -324,7 +324,9 @@ func (i sessionItem) Title() string {
 	if i.block.IsActive {
 		activeStr = " (Active)"
 	}
-	return fmt.Sprintf("Session: %s%s", i.block.StartTime.Local().Format("Jan 02, 3:04 PM MST"), activeStr)
+	start := i.block.StartTime.Local().Format("Jan 02, 3:04 PM")
+	end := i.block.EndTime.Local().Format("3:04 PM MST")
+	return fmt.Sprintf("Session: %s - %s%s", start, end, activeStr)
 }
 
 func (i sessionItem) Description() string {
