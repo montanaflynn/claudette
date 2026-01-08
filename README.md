@@ -13,7 +13,7 @@ A TUI and CLI for viewing Claude Code usage statistics, built with [Charm](https
 ## Installation
 
 <details open>
-<summary><strong>⚡️ Quick Install (macOS / Linux)</strong></summary>
+<summary><strong>Quick Install (macOS / Linux)</strong></summary>
 
 ```bash
 curl -sfL https://raw.githubusercontent.com/montanaflynn/claudette/main/install.sh | sh
@@ -21,7 +21,7 @@ curl -sfL https://raw.githubusercontent.com/montanaflynn/claudette/main/install.
 </details>
 
 <details>
-<summary><strong>🍺 Homebrew (macOS / Linux)</strong></summary>
+<summary><strong>Homebrew (macOS / Linux)</strong></summary>
 
 ```bash
 brew tap montanaflynn/claudette https://github.com/montanaflynn/claudette
@@ -30,7 +30,7 @@ brew install claudette
 </details>
 
 <details>
-<summary><strong>🍨 Scoop (Windows)</strong></summary>
+<summary><strong>Scoop (Windows)</strong></summary>
 
 ```powershell
 scoop bucket add claudette https://github.com/montanaflynn/claudette
@@ -39,7 +39,7 @@ scoop install claudette
 </details>
 
 <details>
-<summary><strong>🐧 Linux Packages (DEB / RPM)</strong></summary>
+<summary><strong>Linux Packages (DEB / RPM)</strong></summary>
 
 Download the latest `.deb` or `.rpm` from the [Releases page](https://github.com/montanaflynn/claudette/releases).
 
@@ -55,7 +55,18 @@ sudo rpm -i claudette_*.rpm
 </details>
 
 <details>
-<summary><strong>🐹 Go Install</strong></summary>
+<summary><strong>Build from Source</strong></summary>
+
+```bash
+git clone https://github.com/montanaflynn/claudette.git
+cd claudette
+make build
+# The binary will be available at ./dist/claudette
+```
+</details>
+
+<details>
+<summary><strong>Go Install</strong></summary>
 
 ```bash
 go install github.com/montanaflynn/claudette@latest
@@ -63,7 +74,7 @@ go install github.com/montanaflynn/claudette@latest
 </details>
 
 <details>
-<summary><strong>📦 Manual Download</strong></summary>
+<summary><strong>Manual Download</strong></summary>
 
 You can download pre-compiled binaries for macOS, Linux, and Windows from the [Releases page](https://github.com/montanaflynn/claudette/releases).
 
