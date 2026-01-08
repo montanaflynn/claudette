@@ -15,7 +15,7 @@ A TUI and CLI for viewing Claude Code usage statistics, built with [Charm](https
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew tap montanaflynn/claudette
+brew tap montanaflynn/claudette https://github.com/montanaflynn/claudette
 brew install claudette
 ```
 
