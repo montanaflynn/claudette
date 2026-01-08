@@ -26,6 +26,20 @@ scoop bucket add claudette https://github.com/montanaflynn/claudette
 scoop install claudette
 ```
 
+### Linux Packages (DEB/RPM)
+
+Download the latest `.deb` or `.rpm` from the [Releases page](https://github.com/montanaflynn/claudette/releases).
+
+**Debian/Ubuntu:**
+```bash
+sudo dpkg -i claudette_*.deb
+```
+
+**Fedora/CentOS:**
+```bash
+sudo rpm -i claudette_*.rpm
+```
+
 ### Go Install
 
 ```bash
