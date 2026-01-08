@@ -5,21 +5,21 @@
 class Claudette < Formula
   desc "Claude Code usage statistics viewer"
   homepage "https://github.com/montanaflynn/claudette"
-  version "0.1.1"
+  version "0.1.2"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.1/claudette_Darwin_x86_64.tar.gz"
-      sha256 "278fb3bd811fd9e0b7c4e04b10368c339a9bf0dfaed96f9b3150de5ca78a34a0"
+      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.2/claudette_Darwin_x86_64.tar.gz"
+      sha256 "60845c18130adc6be56710b4c6338fbee7cbc3821520c0c11a3f2fe05d01aa9a"
 
       def install
         bin.install "claudette"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.1/claudette_Darwin_arm64.tar.gz"
-      sha256 "eaf6aed009f679cdbcdf1f4594623dda670a52da017b870caf25edb924248c6c"
+      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.2/claudette_Darwin_arm64.tar.gz"
+      sha256 "0ff25fd57b639e3fd8bbe25e022a76945f5fa5b14790de75daa8b07a17188425"
 
       def install
         bin.install "claudette"
@@ -29,15 +29,15 @@ class Claudette < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.1/claudette_Linux_x86_64.tar.gz"
-      sha256 "1e3d3d933ec94fcb4a19bfd4547df08dd3d1b783cdc69d03a07211da4fe16cf7"
+      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.2/claudette_Linux_x86_64.tar.gz"
+      sha256 "b760c5fc888b9d16096cac6af51713979793d4f554640c5d9374f962019a7a23"
       def install
         bin.install "claudette"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.1/claudette_Linux_arm64.tar.gz"
-      sha256 "171a6093bf935d0b9c0419a9c577daa051deeb4b312659655f3b8978d5fbdc69"
+      url "https://github.com/montanaflynn/claudette/releases/download/v0.1.2/claudette_Linux_arm64.tar.gz"
+      sha256 "d578e51cd722da9e383f17c15e0eaf612cc7222ea6563b29d945a15f511e7570"
       def install
         bin.install "claudette"
       end
