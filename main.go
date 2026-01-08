@@ -242,9 +242,10 @@ var (
 type view int
 
 const (
-	projectListView view = iota
+	usageListView view = iota
 	usageTableView
 	sessionListView
+	sessionUsageTableView
 )
 
 type model struct {
@@ -281,15 +282,15 @@ type errMsg struct{ err error }
 
 func initialModel() model {
 	return model{
-		currentView: projectListView,
+		currentView: usageListView,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return loadProjects
+	return loadUsageList
 }
 
-func loadProjects() tea.Msg {
+func loadUsageList() tea.Msg {
 	projects, err := stats.ListProjects()
 	if err != nil {
 		return errMsg{err}
@@ -310,6 +311,25 @@ func loadUsage(projectPath string) tea.Cmd {
 
 		return usageLoadedMsg{usage, err}
 	}
+}
+
+func loadSessionUsage(block stats.SessionBlock) tea.Cmd {
+	return func() tea.Msg {
+		usage := stats.LoadGroupedUsageForEvents(block.Entries, "hour")
+		return usageLoadedMsg{usage, nil}
+	}
+}
+
+func loadSessions() tea.Msg {
+	sessions, err := stats.LoadAllSessionBlocks(stats.DefaultSessionDuration)
+	if err != nil {
+		return errMsg{err}
+	}
+	// Sort sessions newest first
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].StartTime.After(sessions[j].StartTime)
+	})
+	return sessionsLoadedMsg{sessions}
 }
 
 type sessionItem struct {
@@ -345,18 +365,6 @@ type sessionsLoadedMsg struct {
 	sessions []stats.SessionBlock
 }
 
-func loadSessions() tea.Msg {
-	sessions, err := stats.LoadAllSessionBlocks(stats.DefaultSessionDuration)
-	if err != nil {
-		return errMsg{err}
-	}
-	// Sort sessions newest first
-	sort.Slice(sessions, func(i, j int) bool {
-		return sessions[i].StartTime.After(sessions[j].StartTime)
-	})
-	return sessionsLoadedMsg{sessions}
-}
-
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -369,23 +377,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, loadSessions
 			}
 		case key.Matches(msg, key.NewBinding(key.WithKeys("u"))):
-			if m.currentView != projectListView {
-				m.currentView = projectListView
+			if m.currentView != usageListView {
+				m.currentView = usageListView
 				m.selected = ""
 				m.usage = nil
 				m.sessions = nil
-				return m, loadProjects
+				return m, loadUsageList
 			}
 		case key.Matches(msg, key.NewBinding(key.WithKeys("left", "esc"))):
-			if m.currentView == usageTableView {
-				m.currentView = projectListView
+			if m.currentView == usageTableView || m.currentView == sessionUsageTableView {
+				prevView := usageListView
+				if m.currentView == sessionUsageTableView {
+					prevView = sessionListView
+				}
+				m.currentView = prevView
 				m.selected = ""
 				m.usage = nil
-				return m, loadProjects
+				return m, nil
 			}
 			return m, tea.Quit
 		case key.Matches(msg, key.NewBinding(key.WithKeys("right", "enter"))):
-			if m.currentView == projectListView {
+			if m.currentView == usageListView {
 				if item, ok := m.list.SelectedItem().(projectItem); ok {
 					m.selected = item.name
 					m.currentView = usageTableView
@@ -394,6 +406,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						path = ""
 					}
 					return m, loadUsage(path)
+				}
+			} else if m.currentView == sessionListView {
+				if item, ok := m.list.SelectedItem().(sessionItem); ok {
+					if !item.block.IsGap {
+						m.selected = item.Title()
+						m.currentView = sessionUsageTableView
+						return m, loadSessionUsage(item.block)
+					}
 				}
 			}
 		}
@@ -433,7 +453,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = msg.err
 	}
 
-	if (m.currentView == projectListView || m.currentView == sessionListView) && m.listReady {
+	if (m.currentView == usageListView || m.currentView == sessionListView) && m.listReady {
 		var cmd tea.Cmd
 		m.list, cmd = m.list.Update(msg)
 		return m, cmd
@@ -467,10 +487,10 @@ func (m model) View() string {
 		return appStyle.Render(fmt.Sprintf("Error: %v\n\nPress q to quit", m.err))
 	}
 
-	help := helpStyle.Render("[u] projects • [s] sessions • [q] quit")
+	help := helpStyle.Render("[u] usage • [s] sessions • [q] quit")
 
 	switch m.currentView {
-	case usageTableView:
+	case usageTableView, sessionUsageTableView:
 		return m.renderTable()
 	case sessionListView:
 		if !m.listReady {
@@ -479,9 +499,9 @@ func (m model) View() string {
 		return appStyle.Render(m.list.View() + "\n" + help)
 	default:
 		if !m.listReady {
-			return appStyle.Render("Loading projects...")
+			return appStyle.Render("Loading usage...")
 		}
-		pHelp := helpStyle.Render("[→] select • [u] projects • [s] sessions • [/] filter • [q] quit")
+		pHelp := helpStyle.Render("[→] select • [u] usage • [s] sessions • [/] filter • [q] quit")
 		return appStyle.Render(m.list.View() + "\n" + pHelp)
 	}
 }

@@ -627,6 +627,11 @@ func LoadGroupedUsageForProject(projectPath, groupBy string) ([]GroupedUsage, er
 	return aggregateByPeriod(events, groupBy), nil
 }
 
+// LoadGroupedUsageForEvents aggregates usage for a specific set of events
+func LoadGroupedUsageForEvents(events []UsageEvent, groupBy string) []GroupedUsage {
+	return aggregateByPeriod(events, groupBy)
+}
+
 func aggregateByPeriod(events []UsageEvent, groupBy string) []GroupedUsage {
 	periodMap := make(map[string]*GroupedUsage)
 	var periods []string
