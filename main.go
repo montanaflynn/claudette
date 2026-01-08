@@ -32,6 +32,8 @@ var CLI struct {
 	} `cmd:"" help:"Manage projects"`
 
 	Status struct{} `cmd:"" help:"Show current session status"`
+
+	TUI struct{} `cmd:"" default:"1" help:"Start the interactive TUI (default)"`
 }
 
 func main() {
@@ -51,7 +53,7 @@ func main() {
 		if err := showStatus(); err != nil {
 			ctx.FatalIfErrorf(err)
 		}
-	default:
+	case "tui", "":
 		if CLI.JSON {
 			if err := outputJSON(CLI.Project, CLI.Group); err != nil {
 				ctx.FatalIfErrorf(err)
@@ -63,6 +65,10 @@ func main() {
 				os.Exit(1)
 			}
 		}
+	default:
+		// Handle unexpected commands if any
+		fmt.Printf("Unknown command: %s\n", ctx.Command())
+		os.Exit(1)
 	}
 }
 
