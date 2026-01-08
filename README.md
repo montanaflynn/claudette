@@ -14,14 +14,10 @@ A TUI and CLI for viewing Claude Code usage statistics, built with [Charm](https
 
 ### Homebrew (macOS/Linux)
 
-The clean way to install:
-
 ```bash
-brew tap montanaflynn/claudette https://github.com/montanaflynn/claudette
+brew tap montanaflynn/claudette
 brew install claudette
 ```
-
-*Note: Since this is a private repository, GitHub may prompt you for credentials.*
 
 ### Go Install
 
