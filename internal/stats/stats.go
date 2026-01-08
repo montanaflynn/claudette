@@ -35,6 +35,7 @@ type UsageEvent struct {
 	CacheCreation int
 	CacheRead     int
 	Model         string
+	Project       string
 	EventID       string
 }
 
@@ -238,6 +239,7 @@ func LoadAllSessionBlocks(sessionDuration time.Duration) ([]SessionBlock, error)
 
 func parseProjectEventsWithDedupe(projectPath string, dedupeCache map[string]bool) ([]UsageEvent, error) {
 	var allEvents []UsageEvent
+	projectName := projectNameFromPath(filepath.Base(projectPath))
 
 	err := filepath.Walk(projectPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -247,7 +249,7 @@ func parseProjectEventsWithDedupe(projectPath string, dedupeCache map[string]boo
 			return nil
 		}
 
-		events, err := parseJSONLFile(path, dedupeCache)
+		events, err := parseJSONLFile(path, dedupeCache, projectName)
 		if err != nil {
 			return nil
 		}
@@ -277,6 +279,7 @@ func GetActiveBlock(blocks []SessionBlock) *SessionBlock {
 func parseProjectEvents(projectPath string) ([]UsageEvent, error) {
 	var allEvents []UsageEvent
 	dedupeCache := make(map[string]bool)
+	projectName := projectNameFromPath(filepath.Base(projectPath))
 
 	err := filepath.Walk(projectPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -286,7 +289,7 @@ func parseProjectEvents(projectPath string) ([]UsageEvent, error) {
 			return nil
 		}
 
-		events, err := parseJSONLFile(path, dedupeCache)
+		events, err := parseJSONLFile(path, dedupeCache, projectName)
 		if err != nil {
 			return nil
 		}
@@ -307,7 +310,7 @@ func parseProjectEvents(projectPath string) ([]UsageEvent, error) {
 }
 
 // parseJSONLFile parses a single JSONL file
-func parseJSONLFile(path string, dedupeCache map[string]bool) ([]UsageEvent, error) {
+func parseJSONLFile(path string, dedupeCache map[string]bool, projectName string) ([]UsageEvent, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -345,7 +348,7 @@ func parseJSONLFile(path string, dedupeCache map[string]bool) ([]UsageEvent, err
 			continue
 		}
 
-		event := extractUsageEvent(record)
+		event := extractUsageEvent(record, projectName)
 		if event == nil {
 			if err == io.EOF {
 				break
@@ -373,7 +376,7 @@ func parseJSONLFile(path string, dedupeCache map[string]bool) ([]UsageEvent, err
 	return events, nil
 }
 
-func extractUsageEvent(record map[string]interface{}) *UsageEvent {
+func extractUsageEvent(record map[string]interface{}, projectName string) *UsageEvent {
 	usage := findUsage(record)
 	if usage == nil {
 		return nil
@@ -399,6 +402,7 @@ func extractUsageEvent(record map[string]interface{}) *UsageEvent {
 		CacheCreation: getInt(usage, "cache_creation_input_tokens"),
 		CacheRead:     getInt(usage, "cache_read_input_tokens"),
 		Model:         model,
+		Project:       projectName,
 		EventID:       findEventID(record),
 	}
 
@@ -669,7 +673,62 @@ func LoadGroupedUsageForProject(projectPath, groupBy string) ([]GroupedUsage, er
 
 // LoadGroupedUsageForEvents aggregates usage for a specific set of events
 func LoadGroupedUsageForEvents(events []UsageEvent, groupBy string) []GroupedUsage {
+	if groupBy == "project" {
+		return aggregateByProject(events)
+	}
 	return aggregateByPeriod(events, groupBy)
+}
+
+func aggregateByProject(events []UsageEvent) []GroupedUsage {
+	projectMap := make(map[string]*GroupedUsage)
+	var projects []string
+
+	for _, e := range events {
+		project := e.Project
+		if project == "" {
+			project = "unknown"
+		}
+
+		if _, ok := projectMap[project]; !ok {
+			projectMap[project] = &GroupedUsage{
+				Period:  project,
+				ByModel: make(map[string]*ModelUsage),
+			}
+			projects = append(projects, project)
+		}
+
+		p := projectMap[project]
+		p.InputTotal += e.InputTokens
+		p.OutputTotal += e.OutputTokens
+		p.CacheCreateTotal += e.CacheCreation
+		p.CacheReadTotal += e.CacheRead
+
+		model := shortModelName(e.Model)
+		if model == "" {
+			model = "unknown"
+		}
+
+		if _, ok := p.ByModel[model]; !ok {
+			p.ByModel[model] = &ModelUsage{Model: model}
+		}
+		p.ByModel[model].Input += e.InputTokens
+		p.ByModel[model].Output += e.OutputTokens
+		p.ByModel[model].CacheCreate += e.CacheCreation
+		p.ByModel[model].CacheRead += e.CacheRead
+	}
+
+	var result []GroupedUsage
+	sort.Strings(projects)
+	for _, project := range projects {
+		p := projectMap[project]
+		for m := range p.ByModel {
+			p.Models = append(p.Models, m)
+		}
+		sort.Strings(p.Models)
+		result = append(result, *p)
+	}
+
+	return result
 }
 
 func aggregateByPeriod(events []UsageEvent, groupBy string) []GroupedUsage {

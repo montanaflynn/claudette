@@ -255,6 +255,7 @@ type model struct {
 	selected    string
 	usage       []stats.GroupedUsage
 	sessions    []stats.SessionBlock
+	groupBy     string // "model" or "project"
 	width       int
 	height      int
 	err         error
@@ -284,6 +285,7 @@ type errMsg struct{ err error }
 func initialModel() model {
 	return model{
 		currentView: usageListView,
+		groupBy:     "model",
 	}
 }
 
@@ -314,9 +316,9 @@ func loadUsage(projectPath string) tea.Cmd {
 	}
 }
 
-func loadSessionUsage(block stats.SessionBlock) tea.Cmd {
+func loadSessionUsage(block stats.SessionBlock, groupBy string) tea.Cmd {
 	return func() tea.Msg {
-		usage := stats.LoadGroupedUsageForEvents(block.Entries, "hour")
+		usage := stats.LoadGroupedUsageForEvents(block.Entries, groupBy)
 		return usageLoadedMsg{usage, nil}
 	}
 }
@@ -372,6 +374,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, key.NewBinding(key.WithKeys("q", "ctrl+c"))):
 			return m, tea.Quit
+		case key.Matches(msg, key.NewBinding(key.WithKeys("g"))):
+			if m.currentView == sessionUsageTableView {
+				if m.groupBy == "model" {
+					m.groupBy = "project"
+				} else {
+					m.groupBy = "model"
+				}
+				// Reload current session with new grouping
+				for _, s := range m.sessions {
+					title := fmt.Sprintf("Session: %s - %s", s.StartTime.Local().Format("Jan 02, 3:04 PM"), s.EndTime.Local().Format("3:04 PM MST"))
+					if m.selected == title {
+						return m, loadSessionUsage(s, m.groupBy)
+					}
+				}
+			}
 		case key.Matches(msg, key.NewBinding(key.WithKeys("s"))):
 			if m.currentView != sessionListView {
 				m.currentView = sessionListView
@@ -413,7 +430,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if !item.block.IsGap {
 						m.selected = item.Title()
 						m.currentView = sessionUsageTableView
-						return m, loadSessionUsage(item.block)
+						return m, loadSessionUsage(item.block, m.groupBy)
 					}
 				}
 			}
@@ -558,13 +575,13 @@ func (m model) renderTable() string {
 			mu := u.ByModel[modelName]
 			total := mu.Input + mu.Output + mu.CacheCreate + mu.CacheRead
 
-			periodCell := ""
+			firstCol := ""
 			if i == 0 {
-				periodCell = u.Period
+				firstCol = u.Period
 			}
 
 			rows = append(rows, []string{
-				periodCell,
+				firstCol,
 				modelName,
 				formatNum(mu.Input),
 				formatNum(mu.Output),
@@ -586,21 +603,50 @@ func (m model) renderTable() string {
 		formatNum(totalAll),
 	})
 
+	firstHeader := "Period"
+	if m.currentView == sessionUsageTableView {
+		if m.groupBy == "project" {
+			firstHeader = "Project"
+		} else {
+			firstHeader = "Time"
+		}
+	}
+
 	tbl := table.New().
 		Border(lipgloss.NormalBorder()).
 		BorderRow(true).
-		Headers("Period", "Model", "Input", "Output", "Cache Write", "Cache Read", "Total").
+		Headers(firstHeader, "Model", "Input", "Output", "Cache Write", "Cache Read", "Total").
 		Rows(rows...).
 		StyleFunc(func(row, col int) lipgloss.Style {
 			return lipgloss.NewStyle().Padding(0, 1)
 		})
 
 	title := titleStyle.Render(m.selected)
-	help := helpStyle.Render("[←] back • [q] quit")
+	
+	helpStr := "[←] back • [q] quit"
+	if m.currentView == sessionUsageTableView {
+		helpStr = "[g] group by "
+		if m.groupBy == "model" {
+			helpStr += "project"
+		} else {
+			helpStr += "model"
+		}
+		helpStr += " • " + helpStr
+	}
+	
+	// Fix: helpStr was using itself in the definition, let's fix that
+	helpStr = "[←] back • [q] quit"
+	if m.currentView == sessionUsageTableView {
+		gStr := "project"
+		if m.groupBy == "project" {
+			gStr = "model"
+		}
+		helpStr = fmt.Sprintf("[g] group by %s • %s", gStr, helpStr)
+	}
 
 	return appStyle.Render(
 		title + "\n\n" +
 			tbl.String() + "\n\n" +
-			help,
+			helpStyle.Render(helpStr),
 	)
 }
