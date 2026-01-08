@@ -89,6 +89,8 @@ func showStatus() error {
 
 	fmt.Printf("Session ID: %s\n", active.ID)
 	fmt.Printf("Status:     %s\n", "Active")
+	fmt.Printf("Start Time: %s\n", active.StartTime.Local().Format("3:04 PM MST"))
+	fmt.Printf("End Time:   %s\n", active.EndTime.Local().Format("3:04 PM MST"))
 	fmt.Printf("Duration:   %s / %s\n", time.Since(active.StartTime).Round(time.Second), stats.DefaultSessionDuration)
 	fmt.Printf("Remaining:  %s\n", remaining.Round(time.Second))
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -322,12 +324,12 @@ func (i sessionItem) Title() string {
 	if i.block.IsActive {
 		activeStr = " (Active)"
 	}
-	return fmt.Sprintf("Session: %s%s", i.block.StartTime.Format("Jan 02, 15:04"), activeStr)
+	return fmt.Sprintf("Session: %s%s", i.block.StartTime.Local().Format("Jan 02, 3:04 PM MST"), activeStr)
 }
 
 func (i sessionItem) Description() string {
 	if i.block.IsGap {
-		return fmt.Sprintf("%s to %s", i.block.StartTime.Format("15:04"), i.block.EndTime.Format("15:04"))
+		return fmt.Sprintf("%s to %s", i.block.StartTime.Local().Format("3:04 PM"), i.block.EndTime.Local().Format("3:04 PM MST"))
 	}
 	return fmt.Sprintf("Tokens: %s | Models: %s",
 		stats.FormatTokens(i.block.TotalTokens()),
