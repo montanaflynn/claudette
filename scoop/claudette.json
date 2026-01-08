@@ -1,19 +1,19 @@
 {
-    "version": "0.1.4",
+    "version": "0.1.5",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/montanaflynn/claudette/releases/download/v0.1.4/claudette_Windows_x86_64.zip",
+            "url": "https://github.com/montanaflynn/claudette/releases/download/v0.1.5/claudette_Windows_x86_64.zip",
             "bin": [
                 "claudette.exe"
             ],
-            "hash": "e1b03830e7ded8678cb21b7327c7315193f5973f4335518e9e713155bea6e259"
+            "hash": "83120b19c52d314a8362b6406c16e1ca9edbc62c7f5393abfbab57330e3add9f"
         },
         "arm64": {
-            "url": "https://github.com/montanaflynn/claudette/releases/download/v0.1.4/claudette_Windows_arm64.zip",
+            "url": "https://github.com/montanaflynn/claudette/releases/download/v0.1.5/claudette_Windows_arm64.zip",
             "bin": [
                 "claudette.exe"
             ],
-            "hash": "c70407d69f37db2a02094275a5da148437070c4c46c4330b3bdb9e959c99a539"
+            "hash": "079e611bdb6c413d7aa34bad235014b5f3b54eba7954e0dcda5698d452aa8590"
         }
     },
     "homepage": "https://github.com/montanaflynn/claudette",
