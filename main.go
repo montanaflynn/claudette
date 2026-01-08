@@ -423,7 +423,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		if m.listReady {
 			h, v := appStyle.GetFrameSize()
-			m.list.SetSize(msg.Width-h, msg.Height-v-2)
+			m.list.SetSize(msg.Width-h, msg.Height-v-1)
 		}
 
 	case projectsLoadedMsg:
@@ -513,7 +513,7 @@ func (m model) View() string {
 			viewHelp = helpStyle.Render("[→] select • [u] usage • [s] sessions • [/] filter • [q] quit")
 		}
 
-		return appStyle.Render(m.list.View() + "\n" + helpStyle.Render(statusBar) + "\n" + viewHelp)
+		return appStyle.Render(m.list.View() + "\n" + helpStyle.Render(statusBar) + "\n\n" + viewHelp)
 	default:
 		return ""
 	}
