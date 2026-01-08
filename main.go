@@ -24,6 +24,10 @@ var CLI struct {
 	Project string `short:"p" help:"Filter to specific project"`
 	Group   string `short:"g" enum:"hour,day,week,month,year" default:"day" help:"Group by time period (hour, day, week, month, year)"`
 	Version kong.VersionFlag `short:"v" help:"Show version"`
+
+	Projects struct {
+		List struct{} `cmd:"" help:"List available projects"`
+	} `cmd:"" help:"Manage projects"`
 }
 
 func main() {
@@ -34,18 +38,36 @@ func main() {
 		kong.Vars{"version": version},
 	)
 
-	switch {
-	case CLI.JSON:
-		if err := outputJSON(CLI.Project, CLI.Group); err != nil {
+	switch ctx.Command() {
+	case "projects list":
+		if err := listProjects(); err != nil {
 			ctx.FatalIfErrorf(err)
 		}
 	default:
-		p := tea.NewProgram(initialModel(), tea.WithAltScreen())
-		if _, err := p.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+		if CLI.JSON {
+			if err := outputJSON(CLI.Project, CLI.Group); err != nil {
+				ctx.FatalIfErrorf(err)
+			}
+		} else {
+			p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+			if _, err := p.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
+			}
 		}
 	}
+}
+
+func listProjects() error {
+	projects, err := stats.ListProjects()
+	if err != nil {
+		return err
+	}
+
+	for _, p := range projects {
+		fmt.Printf("%s\n", p.Name)
+	}
+	return nil
 }
 
 // JSON output types

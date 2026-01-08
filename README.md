@@ -102,7 +102,12 @@ claudette
 
 You can output usage data as JSON using the `--json` (or `-j`) flag.
 
-**List all projects and their daily usage:**
+**List all projects:**
+```bash
+claudette projects list
+```
+
+**Show daily usage for all projects as JSON:**
 ```bash
 claudette --json
 ```
